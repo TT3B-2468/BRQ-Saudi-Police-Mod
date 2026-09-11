@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "project_name": "BRQ | Saudi Police Mod - FiveM Roleplay",
+  "app_archetype": "The Performance Pro & Tactical Command Hub (Tactical Police RP)",
+  "language": "ar",
+  "direction": "rtl",
+  "theme": "dark",
+  "entry_surfaces": {
+    "/": "split tactical hero — cinematic flashing emergency cruiser canvas + prestige gold & Saudi green badge left, instant server HUD & direct join CTAs right",
+    "/quiz": "tactical CAD test terminal — interactive acceptance qualification quiz with timed scenario cards and instant pass/fail score telemetry",
+    "/apply": "classified recruitment terminal — multi-step Saudi Police academy & patrol divisions registration form with real-time field validation",
+    "/rules": "numbered tactical protocol manifesto — collapsible chapters covering patrol rules, ROE (rules of engagement), radio codes, and disciplinary matrix",
+    "/news": "police dispatch intelligence feed — tactical bulletin cards, operation reports, update logs with search and division tags",
+    "/admin": "command & control dashboard — tactical admin panel for managing applications, candidate status triage, news dispatch authoring, and server telemetry"
+  },
+  "typography": {
+    "font_family_heading": "Outfit, 'IBM Plex Sans', sans-serif",
+    "font_family_body": "'IBM Plex Sans', sans-serif",
+    "font_family_mono": "'IBM Plex Mono', 'JetBrains Mono', monospace",
+    "css_font_import": "@import \"@fontsource/ibm-plex-sans\";\n@import \"@fontsource-variable/outfit\";\n@import \"@fontsource/ibm-plex-mono\";",
+    "scale_px": {
+      "display": 60,
+      "h1": 48,
+      "h2": 36,
+      "h3": 24,
+      "h4": 20,
+      "body": 16,
+      "caption": 14
+    },
+    "letter_spacing": {
+      "headings": "tracking-tight",
+      "labels": "tracking-wider uppercase",
+      "body": "normal"
+    }
+  },
+  "colors": {
+    "accent": "#009E49",
+    "on_accent": "#FFFFFF",
+    "accent_gold": "#D4AF37",
+    "accent_gold_hover": "#F0C850",
+    "accent_navy": "#0B192C",
+    "accent_blue_police": "#1E40AF",
+    "accent_red_emergency": "#DC2626",
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#060A0E",
+        "on_bg": "#F8FAFC",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#EF4444",
+          "success": "#10B981",
+          "gold": "#EAB308",
+          "border": "#1E293B"
+        }
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#0D141D",
+        "on_bg": "#F1F5F9",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#F87171",
+          "success": "#34D399",
+          "gold": "#FACC15",
+          "border": "#273549"
+        }
+      },
+      {
+        "name": "panel_tactical_card",
+        "kind": "solid",
+        "bg": "#111B27",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#A0ABBA",
+        "roles": {
+          "highlight": "#009E49",
+          "gold_glow": "#D4AF37",
+          "border": "#1E3048"
+        }
+      },
+      {
+        "name": "inverse",
+        "kind": "solid",
+        "bg": "#F1F5F9",
+        "on_bg": "#060A0E",
+        "on_bg_muted": "#475569"
+      },
+      {
+        "name": "hero",
+        "kind": "image",
+        "contrast_against": "#060A0E",
+        "guarantee": "scrim: linear-gradient(180deg, rgba(6,10,14,0.85) 0%, rgba(6,10,14,0.65) 50%, #060A0E 100%)",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#CBD5E1",
+        "roles": {
+          "link": "#60A5FA",
+          "error": "#F87171",
+          "success": "#4ADE80",
+          "gold": "#FDE047"
+        }
+      },
+      {
+        "name": "glass_header",
+        "kind": "glass",
+        "contrast_against": "#080E16",
+        "guarantee": "backdrop-blur-xl bg-[#060A0E]/85 border-b border-[#1E293B]/80",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#94A3B8"
+      },
+      {
+        "name": "tactical_badge_green",
+        "kind": "solid",
+        "bg": "#004D25",
+        "on_bg": "#4ADE80",
+        "on_bg_muted": "#86EFAC"
+      },
+      {
+        "name": "tactical_badge_gold",
+        "kind": "solid",
+        "bg": "#423204",
+        "on_bg": "#FDE047",
+        "on_bg_muted": "#FEF08A"
+      },
+      {
+        "name": "tactical_badge_navy",
+        "kind": "solid",
+        "bg": "#0F2847",
+        "on_bg": "#60A5FA",
+        "on_bg_muted": "#93C5FD"
+      }
+    ]
+  },
+  "layout_and_grids": {
+    "spacing_scale": "p-4, p-6, p-8, p-12, p-16, p-24, p-32",
+    "bento_mode": "Tetris Mode A for visual feature highlights + High Density Mode B for CAD/Admin analytics and server telemetry",
+    "container_max_width": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "header_spec": "Fixed z-50 top-0 w-full backdrop-blur-xl bg-[#060A0E]/90 border-b border-[#1E2D42]/80 h-20 px-4 lg:px-8 flex items-center justify-between rtl",
+    "hero_composition": "Full-bleed atmospheric dark tactical backdrop with pulse amber/blue siren lights, left-to-right visual weight for RTL: Title with glowing green/gold badges, live server status pill (128/128 Online, 24ms ping), primary Action Buttons ('دخول السيرفر المباشر - F8 connect play.brq-sa.com' and 'انضم لـ Discord BRQ'), quick copy IP button with toast, and interactive mini-stats preview."
+  },
+  "visual_enhancers": {
+    "tactical_hud_elements": [
+      "Subtle top-right HUD coordinates tag e.g. [SECTOR: RIYADH-01 // FREQ: 144.200 MHz]",
+      "Gold and Saudi Green 1px illuminated corner brackets on cards",
+      "Emergency light bar subtle dual glow: pulsing red on left flank, pulsing blue on right flank in header/hero atmosphere",
+      "Tactical scanline or noise texture overlay (opacity-3) across command cards",
+      "Interactive copy-to-clipboard server connection string with audible/visual click confirmation toast"
+    ],
+    "marquee": {
+      "enabled": true,
+      "text": "🛡️ دوريات الأمن العام // 🚓 الإدارة العامة للمرور // 🦅 القوات الخاصة للأمن الدبلوماسي // 🚨 البحث الجنائي // 🚁 جناح الطيران الأمني // ⚡ سيرفر BRQ للحياة الواقعية السعودية // 🎯 نظام تدريب عالي الواقعية // 💻 لوحة تحكم ذكية للأعضاء",
+      "style": "bg-[#0A1017] border-y border-[#1E293B] py-3 text-sm text-[#94A3B8] font-mono tracking-wider"
+    }
+  },
+  "image_urls": {
+    "hero_backdrop": {
+      "url": "https://images.unsplash.com/photo-1718592168437-8382e5b97736?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwyfHxwb2xpY2UlMjBjYXIlMjBuaWdodCUyMGxpZ2h0c3xlbnwwfHx8fDE3ODkwOTQ3ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Police cars with flashing red and blue lights on dark street - Hero background",
+      "category": "hero_background"
+    },
+    "police_patrol_car": {
+      "url": "https://images.unsplash.com/photo-1606022831434-91293aebf25a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHw0fHxwb2xpY2UlMjBjYXIlMjBuaWdodCUyMGxpZ2h0c3xlbnwwfHx8fDE3ODkwOTQ3ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Patrol vehicle with emergency lightbar at night",
+      "category": "features_patrol_fleet"
+    },
+    "tactical_officer": {
+      "url": "https://images.unsplash.com/photo-1605256801685-06e9af2a74f2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHx0YWN0aWNhbCUyMHBvbGljZSUyMHBhdHJvbHxlbnwwfHx8fDE3ODkwOTQ3ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Tactical police officer unit equipment and uniform",
+      "category": "special_forces_division"
+    },
+    "special_forces": {
+      "url": "https://images.unsplash.com/photo-1566566716921-b50e82140547?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHx0YWN0aWNhbCUyMHBvbGljZSUyMHBhdHJvbHxlbnwwfHx8fDE3ODkwOTQ3ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Special emergency forces and tactical response squad",
+      "category": "academy_training"
+    },
+    "city_skyline": {
+      "url": "https://images.unsplash.com/photo-1663900108404-a05e8bf82cda?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxzYXVkaSUyMGFyYWJpYSUyMHJpeWFkaCUyMG5pZ2h0JTIwc2t5bGluZXxlbnwwfHx8fDE3ODkwOTQ3ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Saudi Riyadh illuminated skyline at night",
+      "category": "sector_riyadh_map"
+    }
+  },
+  "interactive_flows": {
+    "quiz_system": {
+      "description": "Interactive multiple choice police academy acceptance test (إلكتروني اختبار)",
+      "questions_count": 5,
+      "categories": ["Radio Codes (10-Codes)", "Use of Force (قواعد الاشتباك)", "Patrol Procedures (إجراءات التوقيف)", "Roleplay Fear/Power Gaming Rules"],
+      "passing_score": 80,
+      "features": ["Instant telemetry feedback", "Question explanation on result", "Direct link to Recruitment Form on pass", "Cooldown / retry timer on fail"]
+    },
+    "application_system": {
+      "description": "Official recruitment application form (التقديم) with MongoDB persistence",
+      "fields": ["full_name", "discord_tag", "age", "fivem_hours", "preferred_division (دوريات الأمن, المرور, البحث الجنائي, الطوارئ الخاصة)", "scenario_answer", "agreement_rules"],
+      "api_endpoint": "/api/applications",
+      "admin_capabilities": ["View applications with filter by status (قيد المراجعة, مقبول, مرفوض)", "Update status with note", "Search by discord tag"]
+    },
+    "news_system": {
+      "description": "Live intelligence dispatch and server updates (الأخبار)",
+      "fields": ["title", "category (بيان أمني, تحديث السيرفر, ترقيات, فعاليات)", "content", "author", "date", "pinned"],
+      "api_endpoint": "/api/news",
+      "admin_capabilities": ["Create new dispatch", "Edit/Delete dispatch", "Pin announcement"]
+    },
+    "server_connect": {
+      "server_ip": "play.brq-sa.com",
+      "discord_link": "https://discord.gg/brq-sa",
+      "copy_command": "connect play.brq-sa.com",
+      "status_api_mock": {
+        "online": true,
+        "players": 118,
+        "max_players": 128,
+        "ping": "22ms",
+        "version": "v3.8.0 Tactical Build"
+      }
+    }
+  },
+  "motion_and_animations": {
+    "hero_reveal": "Staggered fade up with y-offset of 20px, duration 0.6s easeOut",
+    "emergency_beacon_glow": "CSS keyframe pulse between 0.3 and 0.8 opacity for tactical blue/red edge beacons",
+    "cards_hover": "Transform translateY -4px, shadow 0 12px 30px rgba(0, 158, 73, 0.15) with border-color transitioning to gold/emerald",
+    "quiz_progress": "Smooth width transition with easeInOut 0.4s",
+    "prefers_reduced_motion": "Wrap non-essential motion in accessibility guard"
+  },
+  "accessibility_and_rtl": {
+    "dir": "rtl",
+    "font_lang": "ar",
+    "contrast_check": "All text tokens exceed 4.5:1 against respective surfaces (#F8FAFC on #060A0E gives > 18:1 ratio)",
+    "data_testids": "All buttons, inputs, tabs, filter pills, quiz options, and admin actions must carry explicit kebab-case data-testid attributes"
+  },
+  "component_paths": {
+    "header": "/app/frontend/src/components/layout/Navbar.tsx",
+    "footer": "/app/frontend/src/components/layout/Footer.tsx",
+    "hero": "/app/frontend/src/components/home/HeroSection.tsx",
+    "features_bento": "/app/frontend/src/components/home/DivisionsBento.tsx",
+    "server_status_hud": "/app/frontend/src/components/home/ServerStatusHud.tsx",
+    "quiz_component": "/app/frontend/src/components/quiz/PoliceQuiz.tsx",
+    "application_form": "/app/frontend/src/components/apply/ApplicationForm.tsx",
+    "rules_accordion": "/app/frontend/src/components/rules/RulesAccordion.tsx",
+    "news_feed": "/app/frontend/src/components/news/NewsFeed.tsx",
+    "admin_dashboard": "/app/frontend/src/pages/Admin.tsx"
+  },
+  "instructions_to_main_agent": [
+    "Ensure RTL is set on the root element and Arabic typography is primary (dir='rtl' lang='ar' on html/body)",
+    "Implement the dark Saudi Police tactical aesthetic: deep obsidian backgrounds (#060A0E, #0D141D), Saudi Green accents (#009E49), Prestige Gold borders/highlights (#D4AF37), and tactical navy accents (#0B192C, #1E40AF)",
+    "The Hero section must feature the tactical police night background image with high-contrast copy, live server status card (118/128 players), instant connect button that copies 'connect play.brq-sa.com' with Sonner toast, and direct Discord button",
+    "Create the interactive 5-question Acceptance Quiz (إلكتروني اختبار) with radio codes and police scenarios, showing instant scoring and qualification certificate badge upon passing (>=80%)",
+    "Build the Recruitment Application Form (التقديم) which saves to MongoDB via /api/applications with validation for discord tag, age, division, and scenario analysis",
+    "Build the Tactical Rules Section (القوانين) categorized into: General Server Rules, Patrol & Engagement Protocol, Radio & 10-Codes, Disciplinary Matrix",
+    "Build the Dispatch News Feed (الأخبار) connected to /api/news with category filtering and read modals",
+    "Build the Simple Admin Dashboard (/admin) allowing admins to login (demo credentials: admin / brq2026), review applications (approve/reject with notes), and manage news posts",
+    "Include sound/visual feedback on interactive elements (emergency beacons, radar sweep animations, copy confirmation toasts)",
+    "Ensure all interactive elements have data-testid attributes for testing subagent verification"
+  ]
+}
