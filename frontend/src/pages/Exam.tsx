@@ -48,6 +48,8 @@ export default function Exam() {
     queryKey: ["discord-me"],
     queryFn: () => apiGet<DiscordMember>("/discord/me"),
     retry: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) => (query.state.status === "error" ? 3000 : false),
   });
   const { data: questions, isError, refetch } = useQuery({
     queryKey: ["quiz-questions"],
@@ -158,12 +160,17 @@ export default function Exam() {
                   </p>
                   <a
                     href="/api/discord/login"
+                    target="_blank"
+                    rel="noopener"
                     data-testid="exam-discord-login-btn"
                     className="inline-flex items-center gap-3 px-9 py-4 rounded-md bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold transition-colors"
                   >
                     <SiDiscord size={18} />
                     دخول عبر الديسكورد
                   </a>
+                  <p className="text-xs text-[#64748B] mt-5" data-testid="exam-discord-login-hint">
+                    يُفتح الديسكورد في نافذة جديدة — بعد الموافقة ارجع لهذه الصفحة وستُحدَّث تلقائياً.
+                  </p>
                 </>
               ) : (
                 <>

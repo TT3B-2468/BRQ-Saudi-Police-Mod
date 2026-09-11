@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Shield, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { SiDiscord } from "@icons-pack/react-simple-icons";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
@@ -26,9 +26,8 @@ export const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto h-full px-4 lg:px-8 flex items-center justify-between">
         <Link to="/" data-testid="logo-link" className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-md bg-gradient-to-br from-[#009E49] to-[#004D25] border border-[#D4AF37]/50 flex items-center justify-center shadow-[0_0_24px_rgba(0,158,73,0.35)]">
-            <Shield className="w-6 h-6 text-[#FDE047]" />
-          </div>
+          <img src="/brq-logo.png" alt="شعار BRQ" data-testid="brq-logo-img"
+            className="w-12 h-12 object-contain drop-shadow-[0_0_14px_rgba(212,175,55,0.45)]" />
           <div className="leading-tight">
             <div className="font-heading font-extrabold text-lg tracking-tight text-white">BRQ</div>
             <div className="text-[10px] text-[#94A3B8] font-mono tracking-[0.2em]">SAUDI POLICE MOD</div>
@@ -53,6 +52,8 @@ export const Navbar = () => {
         <div className="flex items-center gap-3">
           <a
             href="/api/discord/login"
+            target="_blank"
+            rel="noopener"
             data-testid="discord-login-btn"
             className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-semibold transition-colors"
           >
@@ -75,7 +76,7 @@ export const Navbar = () => {
                     {l.label}
                   </Link>
                 ))}
-                <a href="/api/discord/login" data-testid="mobile-discord-btn"
+                <a href="/api/discord/login" target="_blank" rel="noopener" data-testid="mobile-discord-btn"
                   className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-[#5865F2] text-white text-sm font-semibold">
                   <SiDiscord size={16} />
                   دخول عبر الديسكورد

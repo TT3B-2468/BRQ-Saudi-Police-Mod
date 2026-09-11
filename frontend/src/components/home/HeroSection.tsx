@@ -47,6 +47,15 @@ export const HeroSection = () => {
       </div>
 
       <motion.div style={{ opacity: fade }} className="relative z-10 text-center px-4 pt-20">
+        <motion.img
+          src="/brq-banner.gif"
+          alt="Welcome to BRQ"
+          data-testid="hero-banner-img"
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="w-full max-w-4xl mx-auto mb-10 drop-shadow-[0_10px_40px_rgba(0,0,0,0.6)]"
+        />
         <h1 className="font-heading font-extrabold tracking-tight text-white">
           <MaskedLine text="BRQ" delay={0.15} className="text-7xl sm:text-8xl lg:text-9xl leading-none drop-shadow-[0_0_40px_rgba(0,158,73,0.35)]" />
         </h1>
