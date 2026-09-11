@@ -7,7 +7,6 @@ import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
 import Rules from "@/pages/Rules";
-import NewsPage from "@/pages/NewsPage";
 import AdminLogin from "@/pages/AdminLogin";
 import Admin from "@/pages/Admin";
 import DiscordResult from "@/pages/DiscordResult";
@@ -38,7 +37,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/rules" element={<Rules />} />
-          <Route path="/news" element={<NewsPage />} />
+          <Route path="/news" element={<Navigate to="/" replace />} />
           <Route path="/apply" element={<Navigate to="/" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<Admin />} />

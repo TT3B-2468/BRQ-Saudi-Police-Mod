@@ -12,15 +12,15 @@ export default function Home() {
           <Reveal>
             <ShieldCheck className="w-12 h-12 text-[#D4AF37] mx-auto mb-6" />
             <p className="font-mono text-xs text-[#4ADE80] tracking-[0.3em] mb-3" dir="ltr">// ABOUT BRQ</p>
-            <h2 className="font-heading font-extrabold text-3xl lg:text-5xl text-white tracking-tight mb-6">
+            <h2 className="font-heading font-extrabold text-3xl lg:text-5xl text-white tracking-tight mb-4">
               من نحن
             </h2>
-            <p className="text-[#94A3B8] text-base md:text-lg leading-relaxed mb-6">
-              BRQ مجتمع سعودي للحياة الواقعية في FiveM متخصص في محاكاة العمل الشرطي والأمني —
-              دوريات، بلاغات، مطاردات، وتحقيقات ضمن منظومة انضباط واقعية مستوحاة من القطاعات الأمنية السعودية.
+            <p className="font-heading font-bold text-lg md:text-xl text-[#FDE047] mb-6" data-testid="about-tagline">
+              BRQ | مجتمع سعودي للحياة الواقعية في FiveM
             </p>
-            <p className="text-[#94A3B8] text-base leading-relaxed mb-10">
-              للانضمام إلى صفوفنا: اجتز الاختبار الإلكتروني، وسجّل دخولك بالديسكورد لاستلام رتبتك تلقائياً.
+            <p className="text-[#94A3B8] text-base md:text-lg leading-relaxed mb-10" data-testid="about-text">
+              متخصصون في تقديم أجمل وأرقى تجربة حياة واقعية في عالم الفايف إم، مع التركيز الاحترافي على مود وتجربة
+              العمل الشرطي والأمني. نتمنى لكم قضاء أمتع الأوقات ودوم التوفيق والنجاح.
             </p>
             <Link
               to="/exam"

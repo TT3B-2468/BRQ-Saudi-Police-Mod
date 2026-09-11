@@ -11,7 +11,7 @@ import { ACCEPTED_ROLE_NAME } from "@/lib/config";
 import { Reveal } from "@/components/Reveal";
 
 export default function Exam() {
-  const { data: questions, isError } = useQuery({
+  const { data: questions, isError, refetch } = useQuery({
     queryKey: ["quiz-questions"],
     queryFn: () => apiGet<QuizQuestion[]>("/quiz/questions"),
     staleTime: Infinity,
@@ -19,7 +19,7 @@ export default function Exam() {
   });
   const [phase, setPhase] = useState<"intro" | "quiz" | "result">("intro");
   const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<{ id: number; option: string }[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [cooldown, setCooldown] = useState(0);
@@ -39,9 +39,14 @@ export default function Exam() {
     setResult(null);
   };
 
+  const retry = async () => {
+    await refetch();
+    start();
+  };
+
   const next = () => {
     if (selected === null || !questions) return;
-    const nextAnswers = [...answers, selected];
+    const nextAnswers = [...answers, { id: questions[idx].id, option: questions[idx].options[selected] }];
     if (idx + 1 === questions.length) {
       apiPost<QuizResult>("/quiz/submit", { answers: nextAnswers })
         .then((r) => {
@@ -90,7 +95,7 @@ export default function Exam() {
             إلكتروني اختبار القبول
           </h1>
           <p className="text-[#94A3B8] text-center mb-12 text-base">
-            خمسة أسئلة عن القوانين والبروتوكولات — تحتاج {4} من {5} (80%) للاجتياز واستلام رتبتك.
+            15 سؤالاً (اختيار من متعدد) عن القوانين والبروتوكولات — تحتاج 8 إجابات صحيحة فما فوق للاجتياز واستلام رتبتك.
           </p>
         </Reveal>
 
@@ -104,7 +109,8 @@ export default function Exam() {
               <ShieldCheck className="w-14 h-14 text-[#009E49] mx-auto mb-6" />
               <h2 className="font-heading font-bold text-xl text-white mb-3">تعليمات الاختبار</h2>
               <ul className="text-sm text-[#94A3B8] space-y-2 mb-8 max-w-md mx-auto text-right">
-                <li>· الأسئلة تغطي رموز الراديو، قواعد الاشتباك، وإجراءات التوقيف.</li>
+                <li>· الأسئلة تغطي الرول بلاي، قواعد الاشتباك، والراديو والإجراءات الأمنية.</li>
+                <li>· تُخلط الأسئلة والخيارات تلقائياً عند كل محاولة.</li>
                 <li>· لا يمكن التراجع عن الإجابة بعد تأكيدها.</li>
                 <li>· عند الرسوب يمكنك إعادة المحاولة بعد 60 ثانية.</li>
                 <li>· عند الاجتياز تُمنح رتبة {ACCEPTED_ROLE_NAME} تلقائياً عبر الديسكورد.</li>
@@ -123,7 +129,7 @@ export default function Exam() {
           <div className="rounded-lg border border-[#1E293B] bg-[#0D141D] p-8 lg:p-10" data-testid="exam-quiz-panel">
             <div className="flex items-center justify-between mb-3 text-xs font-mono text-[#64748B]">
               <span data-testid="exam-progress-label">السؤال {idx + 1} / {questions!.length}</span>
-              <span className="text-[#38BDF8]">{q.category}</span>
+              <span className="text-[#38BDF8]">اختيار من متعدد</span>
             </div>
             <div className="h-1.5 rounded-full bg-[#111B27] overflow-hidden mb-8" dir="ltr">
               <motion.div
@@ -217,13 +223,13 @@ export default function Exam() {
                     لم تُجتز الاختبار هذه المرة
                   </h2>
                   <p className="text-[#94A3B8] mb-2">
-                    نتيجتك: <span className="text-[#F87171] font-bold font-mono" dir="ltr">{result.score}/{result.total}</span> — المطلوب 4/5
+                    نتيجتك: <span className="text-[#F87171] font-bold font-mono" dir="ltr">{result.score}/{result.total}</span> — المطلوب 8/15
                   </p>
                   <p className="text-sm text-[#94A3B8] mb-8">
                     راجع <Link to="/rules" className="text-[#38BDF8] hover:underline">صفحة القوانين</Link> ثم أعد المحاولة.
                   </p>
                   <button
-                    onClick={start}
+                    onClick={retry}
                     disabled={cooldown > 0}
                     data-testid="exam-retry-btn"
                     className="inline-flex items-center gap-2 px-8 py-4 rounded-md border border-[#1E293B] bg-[#0D141D] hover:bg-[#111B27] disabled:opacity-50 text-white font-bold transition-colors"

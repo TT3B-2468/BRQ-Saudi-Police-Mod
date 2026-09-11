@@ -1,13 +1,3 @@
-export interface NewsPost {
-  id: string;
-  title: string;
-  category: string;
-  content: string;
-  author: string;
-  pinned: boolean;
-  created_at: string;
-}
-
 export interface Application {
   id: string;
   full_name: string;
@@ -24,7 +14,6 @@ export interface Application {
 
 export interface QuizQuestion {
   id: number;
-  category: string;
   question: string;
   options: string[];
 }

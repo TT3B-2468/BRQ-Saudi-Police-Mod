@@ -16,7 +16,7 @@ export const Footer = () => (
           </div>
         </div>
         <p className="text-sm text-[#94A3B8] leading-relaxed">
-          مجتمع سعودي للحياة الواقعية في FiveM — هيبة الدوريات الأمنية، واقعية التعامل، وانضباط المنظومة.
+          BRQ | مجتمع سعودي للحياة الواقعية في FiveM — متخصصون في تجربة العمل الشرطي والأمني.
         </p>
       </div>
       <div>
@@ -24,7 +24,6 @@ export const Footer = () => (
         <div className="flex flex-col gap-2 text-sm text-[#94A3B8]">
           <Link to="/exam" className="hover:text-white transition-colors">الاختبار الإلكتروني</Link>
           <Link to="/rules" className="hover:text-white transition-colors">القوانين</Link>
-          <Link to="/news" className="hover:text-white transition-colors">الأخبار</Link>
           <Link to="/#about" className="hover:text-white transition-colors">من نحن</Link>
         </div>
       </div>

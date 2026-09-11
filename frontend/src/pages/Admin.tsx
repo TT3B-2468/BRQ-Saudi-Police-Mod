@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { LogOut, Trash2, CheckCircle2, XCircle, Pin } from "lucide-react";
-import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api";
-import type { AdminUser, Application, NewsPost } from "@/lib/types";
+import { LogOut, CheckCircle2, XCircle } from "lucide-react";
+import { apiGet, apiPost, apiPatch } from "@/lib/api";
+import type { AdminUser, Application } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const STATUS_LABELS: Record<string, string> = { pending: "قيد المراجعة", accepted: "مقبول", rejected: "مرفوض" };
 const STATUS_COLORS: Record<string, string> = {
@@ -18,7 +15,6 @@ const STATUS_COLORS: Record<string, string> = {
   accepted: "bg-[#004D25] text-[#4ADE80] border-[#009E49]/40",
   rejected: "bg-[#2A0D0D] text-[#F87171] border-[#DC2626]/40",
 };
-const NEWS_CATEGORIES = ["بيان أمني", "تحديث السيرفر", "ترقيات", "فعاليات"];
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -31,15 +27,8 @@ export default function Admin() {
     queryFn: () => apiGet<Application[]>(`/admin/applications${statusFilter ? `?status=${statusFilter}` : ""}`),
     enabled: !!me.data,
   });
-  const news = useQuery({
-    queryKey: ["admin-news"],
-    queryFn: () => apiGet<NewsPost[]>("/news"),
-    enabled: !!me.data,
-  });
-
   const [decision, setDecision] = useState<{ app: Application; status: "accepted" | "rejected" } | null>(null);
   const [note, setNote] = useState("");
-  const [newsForm, setNewsForm] = useState({ title: "", category: "بيان أمني", content: "", pinned: false });
 
   useEffect(() => {
     if (me.isError) navigate("/admin/login", { replace: true });
@@ -54,27 +43,6 @@ export default function Admin() {
       qc.invalidateQueries({ queryKey: ["admin-apps"] });
     },
     onError: () => toast.error("تعذر تحديث الطلب"),
-  });
-
-  const createNewsMut = useMutation({
-    mutationFn: () => apiPost("/admin/news", newsForm),
-    onSuccess: () => {
-      toast.success("تم نشر البلاغ");
-      setNewsForm({ title: "", category: "بيان أمني", content: "", pinned: false });
-      qc.invalidateQueries({ queryKey: ["admin-news"] });
-      qc.invalidateQueries({ queryKey: ["news"] });
-    },
-    onError: () => toast.error("تعذر نشر البلاغ"),
-  });
-
-  const deleteNewsMut = useMutation({
-    mutationFn: (id: string) => apiDelete(`/admin/news/${id}`),
-    onSuccess: () => {
-      toast.success("تم حذف البلاغ");
-      qc.invalidateQueries({ queryKey: ["admin-news"] });
-      qc.invalidateQueries({ queryKey: ["news"] });
-    },
-    onError: () => toast.error("تعذر حذف البلاغ"),
   });
 
   const logout = async () => {
@@ -109,9 +77,6 @@ export default function Admin() {
           <TabsList className="bg-[#0D141D] border border-[#1E293B] mb-8">
             <TabsTrigger value="applications" data-testid="tab-applications">
               طلبات التقديم ({apps.data?.length ?? 0})
-            </TabsTrigger>
-            <TabsTrigger value="news" data-testid="tab-news">
-              إدارة الأخبار ({news.data?.length ?? 0})
             </TabsTrigger>
           </TabsList>
 
@@ -184,62 +149,6 @@ export default function Admin() {
             )}
           </TabsContent>
 
-          <TabsContent value="news">
-            <form
-              onSubmit={(e) => { e.preventDefault(); createNewsMut.mutate(); }}
-              className="rounded-lg border border-[#1E293B] bg-[#0D141D] p-7 space-y-5 mb-10"
-              data-testid="admin-news-form"
-            >
-              <h3 className="font-heading font-bold text-white">نشر بلاغ جديد</h3>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Input required minLength={3} placeholder="عنوان البلاغ" data-testid="admin-news-title"
-                  value={newsForm.title} onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })}
-                  className="bg-[#0A1017] border-[#273549] text-white" />
-                <Select value={newsForm.category} onValueChange={(v: string) => setNewsForm({ ...newsForm, category: v })}>
-                  <SelectTrigger data-testid="admin-news-category" className="bg-[#0A1017] border-[#273549] text-white">
-                    <SelectValue>{(v) => v as string}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0D141D] border-[#273549]">
-                    {NEWS_CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c} className="text-[#CBD5E1]">{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Textarea required minLength={10} rows={4} placeholder="نص البلاغ..." data-testid="admin-news-content"
-                value={newsForm.content} onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
-                className="bg-[#0A1017] border-[#273549] text-white" />
-              <label className="flex items-center gap-2 text-sm text-[#94A3B8] cursor-pointer">
-                <Checkbox checked={newsForm.pinned} data-testid="admin-news-pinned"
-                  onCheckedChange={(c) => setNewsForm({ ...newsForm, pinned: c === true })}
-                  className="border-[#273549] data-[checked]:bg-[#D4AF37] data-[checked]:border-[#D4AF37]" />
-                تثبيت البلاغ أعلى القائمة
-              </label>
-              <button type="submit" disabled={createNewsMut.isPending} data-testid="admin-news-submit"
-                className="px-7 py-3 rounded-md bg-[#009E49] hover:bg-[#00b855] disabled:opacity-50 text-white text-sm font-bold transition-colors">
-                {createNewsMut.isPending ? "جاري النشر..." : "نشر البلاغ"}
-              </button>
-            </form>
-
-            <div className="space-y-3">
-              {(news.data ?? []).map((p) => (
-                <div key={p.id} data-testid={`admin-news-item-${p.id}`}
-                  className="flex items-center justify-between gap-4 rounded-lg border border-[#1E293B] bg-[#0D141D] px-6 py-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {p.pinned && <Pin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />}
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{p.title}</p>
-                      <p className="text-[11px] text-[#64748B] font-mono">{p.category}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => deleteNewsMut.mutate(p.id)} data-testid={`admin-news-delete-${p.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[#F87171] hover:bg-[#2A0D0D]/50 text-xs transition-colors shrink-0">
-                    <Trash2 className="w-4 h-4" /> حذف
-                  </button>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 

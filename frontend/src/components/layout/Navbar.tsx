@@ -7,7 +7,6 @@ import { DISCORD_URL } from "@/lib/config";
 
 const links = [
   { to: "/rules", id: "rules", label: "القوانين" },
-  { to: "/news", id: "news", label: "الأخبار" },
   { to: "/#about", id: "about", label: "من نحن" },
   { to: "/exam", id: "exam", label: "الاختبار الإلكتروني" },
 ];

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import uuid
+import random
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
@@ -40,31 +41,41 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
-QUIZ_QUESTIONS = [
-    {"id": 1, "category": "رموز الراديو", "question": "ماذا يعني الرمز 10-4 عند استخدام جهاز اللاسلكي؟",
-     "options": ["طلب تعزيزات فورية", "تم الاستلام والفهم", "الاستفسار عن الموقع الحالي", "انتهاء وقت الدوام"], "answer": 1},
-    {"id": 2, "category": "إجراءات التوقيف", "question": "عند إيقاف مركبة مشتبه بها، ما التصرف الصحيح أولاً؟",
-     "options": ["النزول فوراً والاقتراب من السائق", "إطلاق النار تحذيرياً في الهواء",
-                 "إبلاغ غرفة العمليات بالموقع ورقم اللوحة وطلب دعم", "تجاهل المركبة ما دامت لم ترتكب مخالفة"], "answer": 2},
-    {"id": 3, "category": "قواعد اللعب الواقعي", "question": "ما المقصود بـ Fear RP؟",
-     "options": ["تخويف اللاعبين الجدد في السيرفر", "تجسيد الخوف على حياة شخصيتك عند تهديدك بسلاح",
-                 "الاختباء الدائم من الدوريات", "استخدام أصوات مرعبة في المحادثة"], "answer": 1},
-    {"id": 4, "category": "قواعد الاشتباك", "question": "متى يُسمح للضابط باستخدام السلاح الناري؟",
-     "options": ["عند أي مخالفة مرورية", "عند هروب مشتبه به راكضاً",
-                 "عند وجود تهديد مباشر على حياته أو حياة الآخرين", "في أي وقت أثناء الدورية"], "answer": 2},
-    {"id": 5, "category": "قواعد اللعب الواقعي", "question": "ما المقصود بـ Power Gaming؟",
-     "options": ["استخدام جهاز قوي لرفع معدل الإطارات", "فرض أفعال غير واقعية على لاعبين آخرين دون إتاحة الرد",
-                 "اللعب لساعات طويلة متواصلة", "امتلاك أسلحة قوية داخل اللعبة"], "answer": 1},
-]
+QUIZ_PASS_SCORE = 8
 
-SEED_NEWS = [
-    {"title": "انطلاق التحديث التكتيكي v3.8.0 في سيرفر BRQ", "category": "تحديث السيرفر", "pinned": True,
-     "content": "يسر إدارة سيرفر BRQ الإعلان عن انطلاق التحديث التكتيكي v3.8.0 والذي يشمل آليات دوريات جديدة كلياً، نظام بلاغات محسّن لغرفة العمليات، ومركبات أمنية بمواصفات الدوريات السعودية. نرجو من جميع الأعضاء مراجعة القوانين المحدثة قبل الدخول."},
-    {"title": "فتح باب التقديم لدوريات الأمن العام", "category": "بيان أمني", "pinned": False,
-     "content": "تعلن إدارة المواهب في سيرفر BRQ عن فتح باب التقديم للانضمام إلى صفوف دوريات الأمن العام. الشروط: اجتياز الاختبار الإلكتروني بنسبة 80% فأعلى، توفر حساب ديسكورد فعّال، والالتزام الكامل بقوانين الحياة الواقعية. قدّموا الآن من صفحة التقديم."},
-    {"title": "فعالية المناورة الأمنية الكبرى — قطاع الرياض", "category": "فعاليات", "pinned": False,
-     "content": "تقام يوم الجمعة القادم المناورة الأمنية الكبرى في قطاع الرياض بمشاركة جميع الإدارات: دوريات الأمن، المرور، البحث الجنائي، والقوات الخاصة. ستُمنح شارات مميزة للمشاركين المتميزين. التجمع في غرفة التجهيز بالديسكورد قبل الموعد بساعة."},
+QUIZ_QUESTIONS = [
+    {"id": 1, "question": "ما هو الرول بلاي؟",
+     "options": ["تقمص الشخصية بالقول والعمل", "اللعب العشوائي وتجربة السيارات"], "answer": 0},
+    {"id": 2, "question": "هل يحق لك الخروج خارج مدينة الرياض إذا كنت في قطاع الدوريات الأمنية أو المرور أثناء الحالة؟",
+     "options": ["نعم", "غير مسموح إلا بإذن من ضابط"], "answer": 1},
+    {"id": 3, "question": "هل يحق لك الدخول داخل مدينة الرياض إذا كنت في قطاع أمن الطرق أو الشرطة أثناء الحالة؟",
+     "options": ["غير مسموح إلا بإذن من ضابط", "نعم"], "answer": 0},
+    {"id": 4, "question": "إذا كنت في سيناريو وأُصبت، هل يحق لك العودة لمكان السيناريو؟",
+     "options": ["نعم", "يُمنع العودة نهائياً"], "answer": 1},
+    {"id": 5, "question": "في حالة الاستيقاف المروري، أين تتوقف الدورية بالنسبة لمركبة المخالف؟",
+     "options": ["أمام مركبة المخالف", "خلف مركبة المخالف"], "answer": 1},
+    {"id": 6, "question": "في حال كنت برتبة رئيس رقباء، هل يحق لك عمل اصطفاف عسكري؟",
+     "options": ["نعم برتبة رئيس رقباء يحق لك", "غير صحيح، الاصطفاف من رتبة ملازم فما فوق", "نعم في الحالات الطارئة فقط"], "answer": 1},
+    {"id": 7, "question": "في حالة المطاردة، هل يحق لك صدم مركبة الملاحق؟",
+     "options": ["يُمنع الصدم نهائياً", "يحق لك الصدم فوراً", "يحق لك الصدم بعد 3 دقائق"], "answer": 0},
+    {"id": 8, "question": "هل يحق لك قطع بلاغ زميلك وإرسال بلاغك في الراديو؟",
+     "options": ["نعم إذا كانت حالتك طارئة", "غير صحيح، يجب ترك 5 ثوانٍ بين كل بلاغ وبلاغ"], "answer": 1},
+    {"id": 9, "question": "هل يحق لك قطع الإشارة المرورية إذا كنت عسكرياً؟",
+     "options": ["نعم في جميع الأوقات", "غير صحيح، فقط في الحالات الجنائية"], "answer": 1},
+    {"id": 10, "question": "ما هو مفهوم الـ VDM؟",
+     "options": ["الصدم العشوائي", "القتل العشوائي"], "answer": 0},
+    {"id": 11, "question": "ما هو مفهوم الـ RDM؟",
+     "options": ["الصدم العشوائي بالمركبة", "القتل العشوائي أو القتل بدون سبب"], "answer": 1},
+    {"id": 12, "question": "متى يحق لك استعمال السلاح الثقيل؟",
+     "options": ["في المطاردات المرورية", "في السيناريوهات فقط"], "answer": 1},
+    {"id": 13, "question": "متى يحق لك تشغيل الونانات / السواير؟",
+     "options": ["في الحالات الجنائية فقط", "أثناء التجول العادي"], "answer": 0},
+    {"id": 14, "question": "هل يحق لك رفع السلاح على المواطن بدون سبب؟",
+     "options": ["نعم لحماية نفسك", "غير صحيح، إلا في حال بادر المواطن بإطلاق النار"], "answer": 1},
+    {"id": 15, "question": "هل يحق لك تفتيش المواطن بدون سبب؟",
+     "options": ["نعم يحق لك دائماً", "لا، يُمنع التفتيش بدون سبب أمني أو بلاغ جنائي"], "answer": 1},
 ]
+QUIZ_BY_ID = {q["id"]: q for q in QUIZ_QUESTIONS}
 
 
 class LoginIn(BaseModel):
@@ -99,28 +110,19 @@ class ApplicationStatusIn(BaseModel):
     note: str = ""
 
 
-class NewsCreate(BaseModel):
-    title: str = Field(min_length=3, max_length=140)
-    category: str = Field(min_length=2, max_length=40)
-    content: str = Field(min_length=10, max_length=5000)
-    pinned: bool = False
-
-
-class NewsPost(NewsCreate):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    author: str = "إدارة BRQ"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-
 class QuizQuestionOut(BaseModel):
     id: int
-    category: str
     question: str
     options: List[str]
 
 
+class QuizAnswer(BaseModel):
+    id: int
+    option: str
+
+
 class QuizSubmit(BaseModel):
-    answers: List[int]
+    answers: List[QuizAnswer]
 
 
 class QuizResult(BaseModel):
@@ -141,20 +143,12 @@ async def seed_admin():
         await db.users.update_one({"email": email}, {"$set": {"password_hash": hash_password(password)}})
 
 
-async def seed_news():
-    if await db.news.count_documents({}) == 0:
-        for item in SEED_NEWS:
-            await db.news.insert_one(NewsPost(**item).model_dump())
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.index_task = asyncio.create_task(ensure_indexes())
     await db.applications.create_index("id", unique=True)
     await db.applications.create_index("status")
-    await db.news.create_index("id", unique=True)
     await seed_admin()
-    await seed_news()
     yield
     client.close()
 
@@ -242,44 +236,23 @@ async def update_application(app_id: str, body: ApplicationStatusIn, admin: dict
     return Application(**doc)
 
 
-# ---------- News ----------
-
-@api_router.get("/news", response_model=List[NewsPost])
-async def list_news():
-    docs = await db.news.find().sort([("pinned", -1), ("created_at", -1)]).to_list(100)
-    return [NewsPost(**d) for d in docs]
-
-
-@api_router.post("/admin/news", response_model=NewsPost)
-async def create_news(body: NewsCreate, admin: dict = Depends(get_current_admin)):
-    post = NewsPost(**body.model_dump())
-    await db.news.insert_one(post.model_dump())
-    return post
-
-
-@api_router.delete("/admin/news/{news_id}")
-async def delete_news(news_id: str, admin: dict = Depends(get_current_admin)):
-    res = await db.news.delete_one({"id": news_id})
-    if res.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="الخبر غير موجود")
-    return {"ok": True}
-
-
 # ---------- Quiz ----------
 
 @api_router.get("/quiz/questions", response_model=List[QuizQuestionOut])
 async def quiz_questions():
-    return [QuizQuestionOut(id=q["id"], category=q["category"], question=q["question"], options=q["options"])
-            for q in QUIZ_QUESTIONS]
+    qs = random.sample(QUIZ_QUESTIONS, len(QUIZ_QUESTIONS))
+    return [QuizQuestionOut(id=q["id"], question=q["question"], options=random.sample(q["options"], len(q["options"])))
+            for q in qs]
 
 
 @api_router.post("/quiz/submit", response_model=QuizResult)
 async def quiz_submit(body: QuizSubmit):
-    if len(body.answers) != len(QUIZ_QUESTIONS):
+    ids = {a.id for a in body.answers}
+    if ids != set(QUIZ_BY_ID):
         raise HTTPException(status_code=422, detail="يجب الإجابة على جميع الأسئلة")
-    score = sum(1 for q, a in zip(QUIZ_QUESTIONS, body.answers) if a == q["answer"])
+    score = sum(1 for a in body.answers if QUIZ_BY_ID[a.id]["options"][QUIZ_BY_ID[a.id]["answer"]] == a.option)
     total = len(QUIZ_QUESTIONS)
-    passed = score >= 4
+    passed = score >= QUIZ_PASS_SCORE
     token = None
     if passed:
         token = jwt.encode(
