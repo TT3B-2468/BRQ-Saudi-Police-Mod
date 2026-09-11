@@ -2,6 +2,9 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/backend/server.py" },
-    { "source": "/((?!api/|.*\\.).*)", "destination": "/frontend/index.html" }
+    { "source": "/src/(.*)", "destination": "/frontend/src/$1" },
+    { "source": "/node_modules/(.*)", "destination": "/frontend/node_modules/$1" },
+    { "source": "/(.*)\\.(tsx|ts|js|jsx|css|json|ico|png|jpg)", "destination": "/frontend/$1.$2" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
