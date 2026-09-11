@@ -1,7 +1,7 @@
 export const SERVER_NAME = "BRQ | Saudi Police Mod";
 export const SERVER_IP = "play.brq-sa.com";
 export const CONNECT_CMD = `connect ${SERVER_IP}`;
-export const DISCORD_URL = "https://discord.gg/brq-sa";
+export const DISCORD_URL = "https://discord.gg/38VHdvurW9";
 export const ACCEPTED_ROLE_NAME = "✅〢مجتاز";
 export const HERO_IMAGE =
   "https://static.prod-images.emergentagent.com/jobs/40866301-b5f5-4e02-afe6-11bd55b16407/images/32daf428c79473a27f085891f8233b62f6bf6db0df8311cc3e6f6aa7c1d7ec43.jpeg";
