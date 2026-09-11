@@ -25,6 +25,18 @@ export interface QuizResult {
   role_granted: boolean;
 }
 
+export interface QuizAttempt {
+  id: string;
+  user_id: string;
+  username: string;
+  avatar?: string | null;
+  score: number;
+  total: number;
+  passed: boolean;
+  role_granted: boolean;
+  created_at: string;
+}
+
 export interface DiscordMember {
   id: string;
   username: string;

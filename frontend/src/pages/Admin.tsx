@@ -6,6 +6,7 @@ import { LogOut, CheckCircle2, XCircle } from "lucide-react";
 import { apiGet, apiPost, apiPatch } from "@/lib/api";
 import type { AdminUser, Application } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuizResultsTab } from "@/components/admin/QuizResultsTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -73,12 +74,19 @@ export default function Admin() {
           </button>
         </div>
 
-        <Tabs defaultValue="applications">
+        <Tabs defaultValue="quiz">
           <TabsList className="bg-[#0D141D] border border-[#1E293B] mb-8">
+            <TabsTrigger value="quiz" data-testid="tab-quiz-results">
+              سجل المجتازين
+            </TabsTrigger>
             <TabsTrigger value="applications" data-testid="tab-applications">
               طلبات التقديم ({apps.data?.length ?? 0})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="quiz">
+            <QuizResultsTab />
+          </TabsContent>
 
           <TabsContent value="applications">
             <div className="flex flex-wrap gap-2 mb-6" data-testid="admin-status-filters">

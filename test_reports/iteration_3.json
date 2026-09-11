@@ -1,0 +1,23 @@
+{
+  "summary": "Validated new admin 'سجل المجتازين' (quiz-results log) feature end-to-end. Backend: 5/5 pytest tests passed against preview URL — GET /api/admin/quiz-results returns 401 without cookie; admin cookie login lists results with required shape (id,user_id,username,score,total,passed,role_granted,created_at) sorted desc by created_at; ?passed=true contains the real record 'Abu Da7m' with score 15/15 and role_granted=true; ?passed=false only failed items. Forged discord_session HS256 JWT for uid TESTUSER-QA / 'QA Tester' and POST /api/quiz/submit with all wrong answers → 200 {score:0,total:15,passed:false,role_granted:false}; admin listing then included the QA Tester failed record; test cleanup deleted the QA record from Mongo quiz_results. Frontend: admin login → /admin dashboard shows tabs tab-quiz-results (default active) and tab-applications; admin-quiz-results panel renders with filter buttons passed/failed/all; admin-quiz-table shows the Abu Da7m row with '15/15', 'مجتاز' and role '✅〢مجتاز'; switching to 'الراسبون' (failed) → admin-quiz-empty visible (no failed rows after cleanup); 'الكل' shows all rows; tab switch to applications works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_admin_quiz_results.py",
+    "/app/test_reports/pytest/quiz_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py list_quiz_results generates a NEW uuid on every request instead of returning the stored record's id (see line ~297: `{'id': str(uuid.uuid4()), **d}`). Frontend keys rows by this id which changes every fetch — harmless for React (full re-render on refetch) but wasteful and misleading (the persisted id in Mongo is ignored). Recommend: rely on the stored `id` field (already inserted at quiz_submit line ~287) and drop the uuid override, OR project it explicitly. Low priority — no functional bug.",
+    "Existing /app/backend/tests/test_brq_api.py is stale (predates discord-session auth on /api/quiz/submit and the response schema change to include role_granted); it will fail now. Not in this iteration's scope but should be updated by main agent.",
+    "quiz_submit doesn't guard against duplicate submissions per uid (a user can spam attempts and pile records)."
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_quiz_results.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin: admin@brq.sa / brq2026. Discord session forged via HS256 JWT with JWT_SECRET from /app/backend/.env, uid=TESTUSER-QA (fake, not a real Discord user).",
+  "seed_data_creation": "Temporarily inserted one failed quiz_results record for user_id=TESTUSER-QA / 'QA Tester' by POSTing all wrong answers. Deleted at end of the test via pymongo (verified deleted_count>=1).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Feature works fully. Real record for 'Abu Da7m' (score 15/15, passed=true, role_granted=true) exists in the quiz_results collection. Do NOT submit a passing quiz (would call real Discord role grant). New pytest file /app/backend/tests/test_admin_quiz_results.py is safe to re-run — it self-cleans. Note: /app/backend/tests/test_brq_api.py is stale (calls /quiz/submit without discord cookie, expects old schema); main agent should update or remove it.",
+  "rca of the issue": "N/A — new-feature verification, no bug reproduced."
+}

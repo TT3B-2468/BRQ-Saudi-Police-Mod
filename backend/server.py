@@ -135,6 +135,18 @@ class QuizResult(BaseModel):
     role_granted: bool = False
 
 
+class QuizAttempt(BaseModel):
+    id: str
+    user_id: str
+    username: str
+    avatar: Optional[str] = None
+    score: int
+    total: int = 15
+    passed: bool
+    role_granted: bool = False
+    created_at: datetime
+
+
 class DiscordMember(BaseModel):
     id: str
     username: str
@@ -272,9 +284,17 @@ async def quiz_submit(body: QuizSubmit, request: Request):
             {"user_id": member["uid"], "username": member["username"], "score": score,
              "role_granted": role_granted, "granted_at": datetime.now(timezone.utc)})
     await db.quiz_results.insert_one(
-        {"user_id": member["uid"], "username": member["username"], "score": score, "passed": passed,
-         "created_at": datetime.now(timezone.utc)})
+        {"id": str(uuid.uuid4()), "user_id": member["uid"], "username": member["username"],
+         "avatar": member.get("avatar"), "score": score, "total": total, "passed": passed,
+         "role_granted": role_granted, "created_at": datetime.now(timezone.utc)})
     return QuizResult(score=score, total=total, passed=passed, role_granted=role_granted)
+
+
+@api_router.get("/admin/quiz-results", response_model=List[QuizAttempt])
+async def list_quiz_results(passed: Optional[bool] = None, admin: dict = Depends(get_current_admin)):
+    query = {} if passed is None else {"passed": passed}
+    docs = await db.quiz_results.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return [QuizAttempt(**{"id": str(uuid.uuid4()), **d}) for d in docs]
 
 
 # ---------- Discord OAuth2 + Bot Role Grant ----------
