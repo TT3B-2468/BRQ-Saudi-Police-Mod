@@ -37,12 +37,12 @@ export default function DiscordResult() {
               </h1>
               <p className="text-sm text-[#94A3B8] leading-relaxed mb-8">
                 تم ربط حسابك ومنحك رتبة <span className="text-[#FDE047] font-bold">{ACCEPTED_ROLE_NAME}</span> في
-                سيرفر الديسكورد بنجاح. خطوتك التالية: أكمل نموذج التقديم للالتحاق بإحدى الإدارات.
+                سيرفر الديسكورد بنجاح. توجه الآن إلى السيرفر والتحق بالدوريات — بانتظارك في الميدان.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <Link to="/apply" data-testid="discord-result-apply-btn"
+                <Link to="/" data-testid="discord-result-home-btn"
                   className="px-7 py-3.5 rounded-md bg-[#009E49] hover:bg-[#00b855] text-white font-bold text-sm transition-colors">
-                  أكمل نموذج التقديم
+                  العودة للرئيسية
                 </Link>
                 <a href={DISCORD_URL} target="_blank" rel="noreferrer" data-testid="discord-result-open-btn"
                   className="inline-flex items-center gap-2 px-7 py-3.5 rounded-md border border-[#5865F2] text-[#A5B4FC] hover:bg-[#5865F2]/15 font-bold text-sm transition-colors">

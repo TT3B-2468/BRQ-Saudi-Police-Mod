@@ -202,11 +202,11 @@ export default function Exam() {
                       {connecting ? "جاري التحويل للديسكورد..." : "تسجيل الدخول عبر الديسكورد"}
                     </button>
                     <Link
-                      to="/apply"
-                      data-testid="exam-apply-link"
+                      to="/"
+                      data-testid="exam-home-link"
                       className="inline-flex items-center px-7 py-4 rounded-md border border-[#D4AF37]/60 text-[#FDE047] hover:bg-[#D4AF37]/10 font-bold transition-colors"
                     >
-                      أكمل نموذج التقديم
+                      العودة للرئيسية
                     </Link>
                   </div>
                 </>

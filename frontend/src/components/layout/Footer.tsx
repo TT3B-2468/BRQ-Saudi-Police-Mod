@@ -22,10 +22,10 @@ export const Footer = () => (
       <div>
         <h4 className="text-sm font-bold text-[#FDE047] mb-4 tracking-wide">روابط سريعة</h4>
         <div className="flex flex-col gap-2 text-sm text-[#94A3B8]">
-          <Link to="/exam" className="hover:text-white transition-colors">إلكتروني اختبار</Link>
+          <Link to="/exam" className="hover:text-white transition-colors">الاختبار الإلكتروني</Link>
           <Link to="/rules" className="hover:text-white transition-colors">القوانين</Link>
-          <Link to="/apply" className="hover:text-white transition-colors">التقديم</Link>
           <Link to="/news" className="hover:text-white transition-colors">الأخبار</Link>
+          <Link to="/#about" className="hover:text-white transition-colors">من نحن</Link>
         </div>
       </div>
       <div>
