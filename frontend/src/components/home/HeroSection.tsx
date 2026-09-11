@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Play } from "lucide-react";
 import { SiDiscord } from "@icons-pack/react-simple-icons";
 import { toast } from "sonner";
-import { HERO_IMAGE, CONNECT_CMD, DISCORD_URL } from "@/lib/config";
+import { HERO_IMAGE, DISCORD_URL } from "@/lib/config";
 
 const MaskedLine = ({ text, delay, className }: { text: string; delay: number; className?: string }) => (
   <span className="block overflow-hidden pb-1">
@@ -22,13 +22,8 @@ export const HeroSection = () => {
   const bgY = useTransform(scrollY, [0, 700], [0, 180]);
   const fade = useTransform(scrollY, [0, 500], [1, 0.35]);
 
-  const copyConnect = async () => {
-    try {
-      await navigator.clipboard.writeText(CONNECT_CMD);
-      toast.success("تم نسخ أمر الاتصال", { description: `افتح كونسول F8 في FiveM والصق: ${CONNECT_CMD}` });
-    } catch {
-      toast.info(CONNECT_CMD, { description: "انسخ الأمر يدوياً والصقه في كونسول F8" });
-    }
+  const copyConnect = () => {
+    toast.info("قريباً", { description: "سيتم إتاحة الدخول إلى السيرفر قريباً — تابعنا في الديسكورد." });
   };
 
   return (
@@ -41,10 +36,6 @@ export const HeroSection = () => {
 
       <div className="beacon-red absolute top-0 bottom-0 right-0 w-28 pointer-events-none" />
       <div className="beacon-blue absolute top-0 bottom-0 left-0 w-28 pointer-events-none" />
-
-      <div className="absolute top-24 left-4 lg:left-8 font-mono text-[11px] text-[#64748B] tracking-widest z-10" dir="ltr">
-        [SECTOR: RIYADH-01 // FREQ: 144.200 MHz]
-      </div>
 
       <motion.div style={{ opacity: fade }} className="relative z-10 text-center px-4 pt-20">
         <motion.img

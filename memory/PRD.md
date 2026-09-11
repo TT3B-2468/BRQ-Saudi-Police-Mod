@@ -44,6 +44,9 @@
 - أول اجتياز حقيقي: Abu Da7m 15/15 — الرتبة مُنحت فعلياً (204). testing_agent iteration_3 ناجح.
 - المستخدم سأل عن التحكم بالرابط خارج Emergent → أُجيب عبر support_agent (نطاق مخصص من Manage Publishes → Domain، أو تصدير لـ GitHub). عند تغيير الدومين يجب تحديث DISCORD_REDIRECT_URI + Redirects في Developer Portal.
 
+## Implemented (2026-09-11 — تعديلات Hero صغيرة)
+- زر «دخول إلى السيرفر» يعرض toast «قريباً» بدل نسخ أمر connect (بانتظار IP حقيقي). حُذف شريط [SECTOR: RIYADH-01 // FREQ] من الـ Hero.
+
 ## Backlog
 - P0 (مكتمل تقنياً): Discord OAuth2 + Bot مفعّلان — البوت BRQ Bot مصادق ويملك Administrator ورتبته أعلى من ✅〢مجتاز. بانتظار تجربة المستخدم للتدفق الكامل.
 - P1: IP السيرفر الحقيقي + صورة خلفية Hero رسمية إن أراد المستخدم (البنر والشعار أُضيفا).
