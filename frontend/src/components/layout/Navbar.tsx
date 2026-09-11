@@ -3,7 +3,6 @@ import { Link, NavLink } from "react-router-dom";
 import { Shield, Menu } from "lucide-react";
 import { SiDiscord } from "@icons-pack/react-simple-icons";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { DISCORD_URL } from "@/lib/config";
 
 const links = [
   { to: "/rules", id: "rules", label: "القوانين" },
@@ -53,9 +52,7 @@ export const Navbar = () => {
 
         <div className="flex items-center gap-3">
           <a
-            href={DISCORD_URL}
-            target="_blank"
-            rel="noreferrer"
+            href="/api/discord/login"
             data-testid="discord-login-btn"
             className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-semibold transition-colors"
           >
@@ -78,7 +75,7 @@ export const Navbar = () => {
                     {l.label}
                   </Link>
                 ))}
-                <a href={DISCORD_URL} target="_blank" rel="noreferrer" data-testid="mobile-discord-btn"
+                <a href="/api/discord/login" data-testid="mobile-discord-btn"
                   className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-[#5865F2] text-white text-sm font-semibold">
                   <SiDiscord size={16} />
                   دخول عبر الديسكورد

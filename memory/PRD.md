@@ -10,7 +10,7 @@
 ## Architecture
 - FastAPI + MongoDB (backend/server.py): auth (JWT cookie, bcrypt), quiz (أسئلة server-side + تصحيح + رمز اجتياز JWT 30 دقيقة)، applications، news، Discord OAuth2 (login/callback مع guilds.join + منح رتبة عبر Bot Token REST).
 - React 19 + Vite + Tailwind v4 + framer-motion + lenis (RTL بالكامل، dir=rtl lang=ar).
-- Routes: / /exam /rules /apply /news /admin/login /admin /discord/result.
+- Routes: / /exam /rules /admin/login /admin (news/apply/discord/result → redirects).
 
 ## Implemented (2026-09-11)
 - إعادة تصميم حسب مرجع SPM: رئيسية بسيطة بعرض كامل — عنوان BRQ ضخم بكشف سطري + وصف قصير + زرا (دخول السيرفر / الديسكورد) + قسم من نحن فقط. القائمة: القوانين، الأخبار، من نحن، الاختبار الإلكتروني.
@@ -28,6 +28,12 @@
 - القوانين: فصلان فقط (قوانين الديسكورد 17 بنداً، القوانين العامة 19 بنداً) بنص المستخدم.
 - من نحن: «BRQ | مجتمع سعودي للحياة الواقعية في FiveM» + الوصف الجديد.
 - اختبار شامل عبر testing_agent: iteration_1.json — كل الاختبارات ناجحة.
+
+## Implemented (2026-09-11 — ترتيب التدفق الجديد)
+- التدفق أصبح: **دخول ديسكورد → اجتياز → منح الرتبة** (بطلب المستخدم).
+- Backend: `GET /api/discord/login` (redirect مباشر لـ Discord، state JWT)، `GET /api/discord/callback` (ينضم للسيرفر + يضبط كوكي httpOnly `discord_session` 6 ساعات → يحوّل إلى /exam?discord=ok)، `GET /api/discord/me`، `POST /api/discord/logout`. `POST /api/quiz/submit` يشترط الكوكي، وعند النجاح يمنح الرتبة فوراً عبر البوت ويرجع `role_granted`، ويسجّل في `quiz_results` و`discord_grants`.
+- Frontend: صفحة /exam بمؤشر 3 خطوات؛ قبل الدخول تعرض زر «دخول عبر الديسكورد» (href=/api/discord/login)؛ بعده تعرض اسم/صورة المستخدم وزر البدء؛ نتيجة النجاح تعرض «تم منحك رتبة ✅〢مجتاز». حُذفت صفحة DiscordResult. زر الديسكورد في الناف يبدأ OAuth.
+- تم التحقق فعلياً بمنح الرتبة لعضو في السيرفر عبر جلسة اختبارية ثم إزالتها.
 
 ## Backlog
 - P0 (مكتمل تقنياً): Discord OAuth2 + Bot مفعّلان — البوت BRQ Bot مصادق ويملك Administrator ورتبته أعلى من ✅〢مجتاز. بانتظار تجربة المستخدم للتدفق الكامل.

@@ -9,7 +9,6 @@ import Exam from "@/pages/Exam";
 import Rules from "@/pages/Rules";
 import AdminLogin from "@/pages/AdminLogin";
 import Admin from "@/pages/Admin";
-import DiscordResult from "@/pages/DiscordResult";
 
 export default function App() {
   const lenisRef = useRef<Lenis | null>(null);
@@ -41,7 +40,7 @@ export default function App() {
           <Route path="/apply" element={<Navigate to="/" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/discord/result" element={<DiscordResult />} />
+          <Route path="/discord/result" element={<Navigate to="/exam" replace />} />
         </Routes>
       </main>
       <Footer />

@@ -1,16 +1,54 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ShieldCheck, XCircle, Timer, Award } from "lucide-react";
+import { ShieldCheck, XCircle, Timer, Award, LogOut, CheckCircle2, AlertTriangle } from "lucide-react";
 import { SiDiscord } from "@icons-pack/react-simple-icons";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
-import type { QuizQuestion, QuizResult } from "@/lib/types";
-import { ACCEPTED_ROLE_NAME } from "@/lib/config";
+import type { QuizQuestion, QuizResult, DiscordMember } from "@/lib/types";
+import { ACCEPTED_ROLE_NAME, DISCORD_URL } from "@/lib/config";
 import { Reveal } from "@/components/Reveal";
 
+const FAIL_REASONS: Record<string, string> = {
+  config: "ربط الديسكورد غير مفعّل بعد — تواصل مع الإدارة.",
+  state: "انتهت صلاحية طلب الدخول — حاول مجدداً.",
+  denied: "تم إلغاء تسجيل الدخول من الديسكورد.",
+  token: "فشل تبادل الرمز مع الديسكورد — حاول مجدداً.",
+  user: "تعذر قراءة بيانات حسابك من الديسكورد.",
+};
+
+const Steps = ({ current }: { current: number }) => (
+  <div className="flex items-center justify-center gap-3 mb-12 flex-wrap" data-testid="exam-steps">
+    {["دخول الديسكورد", "الاجتياز", "منح الرتبة"].map((s, i) => (
+      <div key={s} className="flex items-center gap-3">
+        <div
+          data-testid={`exam-step-${i}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold transition-colors ${
+            i < current
+              ? "border-[#009E49] bg-[#004D25]/40 text-[#4ADE80]"
+              : i === current
+                ? "border-[#D4AF37] bg-[#423204]/40 text-[#FDE047]"
+                : "border-[#1E293B] text-[#64748B]"
+          }`}
+        >
+          <span className="font-mono" dir="ltr">{i < current ? "✓" : i + 1}</span>
+          {s}
+        </div>
+        {i < 2 && <span className="w-6 h-px bg-[#1E293B]" />}
+      </div>
+    ))}
+  </div>
+);
+
 export default function Exam() {
+  const qc = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const me = useQuery({
+    queryKey: ["discord-me"],
+    queryFn: () => apiGet<DiscordMember>("/discord/me"),
+    retry: false,
+  });
   const { data: questions, isError, refetch } = useQuery({
     queryKey: ["quiz-questions"],
     queryFn: () => apiGet<QuizQuestion[]>("/quiz/questions"),
@@ -23,7 +61,14 @@ export default function Exam() {
   const [selected, setSelected] = useState<number | null>(null);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [cooldown, setCooldown] = useState(0);
-  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    const d = params.get("discord");
+    if (!d) return;
+    if (d === "ok") toast.success("تم تسجيل الدخول عبر الديسكورد — ابدأ الاختبار الآن");
+    else toast.error("لم يكتمل دخول الديسكورد", { description: FAIL_REASONS[params.get("reason") ?? ""] ?? "حاول مجدداً" });
+    setParams({}, { replace: true });
+  }, [params, setParams]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -44,6 +89,12 @@ export default function Exam() {
     start();
   };
 
+  const logout = async () => {
+    await apiPost("/discord/logout").catch(() => undefined);
+    qc.removeQueries({ queryKey: ["discord-me"] });
+    me.refetch();
+  };
+
   const next = () => {
     if (selected === null || !questions) return;
     const nextAnswers = [...answers, { id: questions[idx].id, option: questions[idx].options[selected] }];
@@ -54,7 +105,13 @@ export default function Exam() {
           setPhase("result");
           if (!r.passed) setCooldown(60);
         })
-        .catch(() => toast.error("تعذر تصحيح الاختبار — حاول مجدداً"));
+        .catch((e) => {
+          if (e instanceof ApiError && e.status === 401) {
+            toast.error("انتهت جلسة الديسكورد — سجّل دخولك مجدداً");
+            setPhase("intro");
+            me.refetch();
+          } else toast.error("تعذر تصحيح الاختبار — حاول مجدداً");
+        });
     } else {
       setAnswers(nextAnswers);
       setIdx(idx + 1);
@@ -62,27 +119,9 @@ export default function Exam() {
     }
   };
 
-  const connectDiscord = async () => {
-    if (!result?.token) return;
-    setConnecting(true);
-    try {
-      const { url } = await apiGet<{ url: string }>(`/discord/login?token=${encodeURIComponent(result.token)}`);
-      window.location.href = url;
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 503) {
-        toast.info("ربط الديسكورد قيد التفعيل", {
-          description: "سيتم تفعيل منح الرتبة التلقائي قريباً — تواصل مع الإدارة في الديسكورد لاستلام رتبتك يدوياً.",
-        });
-      } else if (e instanceof ApiError && e.status === 401) {
-        toast.error("انتهت صلاحية رمز الاجتياز — أعد الاختبار");
-      } else {
-        toast.error("تعذر الاتصال بالديسكورد حالياً");
-      }
-      setConnecting(false);
-    }
-  };
-
   const q = questions?.[idx];
+  const loggedIn = !!me.data;
+  const step = phase === "result" && result?.passed ? 3 : loggedIn ? 1 : 0;
 
   return (
     <div className="pt-32 pb-24 min-h-screen" data-testid="exam-page">
@@ -92,11 +131,12 @@ export default function Exam() {
             // POLICE ACADEMY — CAD TERMINAL
           </p>
           <h1 className="font-heading font-extrabold text-3xl lg:text-5xl text-white tracking-tight text-center mb-4">
-            إلكتروني اختبار القبول
+            الاختبار الإلكتروني
           </h1>
-          <p className="text-[#94A3B8] text-center mb-12 text-base">
-            15 سؤالاً (اختيار من متعدد) عن القوانين والبروتوكولات — تحتاج 8 إجابات صحيحة فما فوق للاجتياز واستلام رتبتك.
+          <p className="text-[#94A3B8] text-center mb-8 text-base">
+            15 سؤالاً (اختيار من متعدد) — تحتاج 8 إجابات صحيحة فما فوق لاستلام رتبة {ACCEPTED_ROLE_NAME} تلقائياً.
           </p>
+          <Steps current={step} />
         </Reveal>
 
         {isError ? (
@@ -106,23 +146,58 @@ export default function Exam() {
         ) : phase === "intro" ? (
           <Reveal delay={0.1}>
             <div className="gold-corners rounded-lg border border-[#1E293B] bg-[#0D141D] p-10 text-center scanlines relative" data-testid="exam-intro">
-              <ShieldCheck className="w-14 h-14 text-[#009E49] mx-auto mb-6" />
-              <h2 className="font-heading font-bold text-xl text-white mb-3">تعليمات الاختبار</h2>
-              <ul className="text-sm text-[#94A3B8] space-y-2 mb-8 max-w-md mx-auto text-right">
-                <li>· الأسئلة تغطي الرول بلاي، قواعد الاشتباك، والراديو والإجراءات الأمنية.</li>
-                <li>· تُخلط الأسئلة والخيارات تلقائياً عند كل محاولة.</li>
-                <li>· لا يمكن التراجع عن الإجابة بعد تأكيدها.</li>
-                <li>· عند الرسوب يمكنك إعادة المحاولة بعد 60 ثانية.</li>
-                <li>· عند الاجتياز تُمنح رتبة {ACCEPTED_ROLE_NAME} تلقائياً عبر الديسكورد.</li>
-              </ul>
-              <button
-                onClick={start}
-                disabled={!questions}
-                data-testid="exam-start-btn"
-                className="px-9 py-4 rounded-md bg-[#009E49] hover:bg-[#00b855] disabled:opacity-50 text-white font-bold transition-colors"
-              >
-                {questions ? "ابدأ الاختبار" : "جاري تحميل الأسئلة..."}
-              </button>
+              {me.isLoading ? (
+                <p className="text-[#64748B] text-sm" data-testid="exam-session-loading">جاري التحقق من جلسة الديسكورد...</p>
+              ) : !loggedIn ? (
+                <>
+                  <SiDiscord size={52} className="text-[#5865F2] mx-auto mb-6" />
+                  <h2 className="font-heading font-bold text-xl text-white mb-3">الخطوة الأولى: سجّل دخولك عبر الديسكورد</h2>
+                  <p className="text-sm text-[#94A3B8] mb-8 max-w-md mx-auto leading-relaxed">
+                    نحتاج حسابك في الديسكورد لنمنحك رتبة <span className="text-[#FDE047] font-bold">{ACCEPTED_ROLE_NAME}</span> تلقائياً
+                    فور اجتيازك الاختبار. سيتم ضمّك لسيرفر BRQ إن لم تكن عضواً.
+                  </p>
+                  <a
+                    href="/api/discord/login"
+                    data-testid="exam-discord-login-btn"
+                    className="inline-flex items-center gap-3 px-9 py-4 rounded-md bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold transition-colors"
+                  >
+                    <SiDiscord size={18} />
+                    دخول عبر الديسكورد
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-[#5865F2]/50 bg-[#5865F2]/10 mb-6" data-testid="exam-discord-user">
+                    {me.data!.avatar ? (
+                      <img src={me.data!.avatar} alt="" className="w-7 h-7 rounded-full" />
+                    ) : (
+                      <SiDiscord size={18} className="text-[#A5B4FC]" />
+                    )}
+                    <span className="text-sm text-white font-bold" data-testid="exam-discord-username">{me.data!.username}</span>
+                    <button onClick={logout} data-testid="exam-discord-logout-btn" title="تبديل الحساب"
+                      className="text-[#94A3B8] hover:text-white transition-colors">
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <ShieldCheck className="w-14 h-14 text-[#009E49] mx-auto mb-6" />
+                  <h2 className="font-heading font-bold text-xl text-white mb-3">الخطوة الثانية: تعليمات الاختبار</h2>
+                  <ul className="text-sm text-[#94A3B8] space-y-2 mb-8 max-w-md mx-auto text-right">
+                    <li>· الأسئلة تغطي الرول بلاي، قواعد الاشتباك، والراديو والإجراءات الأمنية.</li>
+                    <li>· تُخلط الأسئلة والخيارات تلقائياً عند كل محاولة.</li>
+                    <li>· لا يمكن التراجع عن الإجابة بعد تأكيدها.</li>
+                    <li>· عند الرسوب يمكنك إعادة المحاولة بعد 60 ثانية.</li>
+                    <li>· عند الاجتياز تُمنح رتبة {ACCEPTED_ROLE_NAME} فوراً في الديسكورد.</li>
+                  </ul>
+                  <button
+                    onClick={start}
+                    disabled={!questions}
+                    data-testid="exam-start-btn"
+                    className="px-9 py-4 rounded-md bg-[#009E49] hover:bg-[#00b855] disabled:opacity-50 text-white font-bold transition-colors"
+                  >
+                    {questions ? "ابدأ الاختبار" : "جاري تحميل الأسئلة..."}
+                  </button>
+                </>
+              )}
             </div>
           </Reveal>
         ) : phase === "quiz" && q ? (
@@ -188,30 +263,29 @@ export default function Exam() {
                 <>
                   <Award className="w-16 h-16 text-[#D4AF37] mx-auto mb-5" />
                   <h2 className="font-heading font-extrabold text-2xl text-white mb-2" data-testid="exam-result-title">
-                    مبروك — اجتزت الاختبار
+                    مبروك{me.data ? ` يا ${me.data.username}` : ""} — اجتزت الاختبار
                   </h2>
-                  <p className="text-[#94A3B8] mb-2">
+                  <p className="text-[#94A3B8] mb-5">
                     نتيجتك: <span className="text-[#4ADE80] font-bold font-mono" dir="ltr">{result.score}/{result.total}</span>
                   </p>
-                  <p className="text-sm text-[#94A3B8] mb-8 max-w-md mx-auto leading-relaxed">
-                    الخطوة الأخيرة: سجّل دخولك بحساب الديسكورد وسيمنحك البوت رتبة{" "}
-                    <span className="text-[#FDE047] font-bold">{ACCEPTED_ROLE_NAME}</span> تلقائياً في سيرفر BRQ.
-                  </p>
+                  {result.role_granted ? (
+                    <div className="inline-flex items-center gap-2 px-5 py-3 rounded-md border border-[#009E49]/50 bg-[#004D25]/40 text-sm text-[#4ADE80] mb-8" data-testid="exam-role-granted">
+                      <CheckCircle2 className="w-5 h-5" />
+                      تم منحك رتبة <span className="text-[#FDE047] font-bold">{ACCEPTED_ROLE_NAME}</span> في سيرفر الديسكورد
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 px-5 py-3 rounded-md border border-[#D4AF37]/50 bg-[#423204]/30 text-sm text-[#FDE047] mb-8" data-testid="exam-role-pending">
+                      <AlertTriangle className="w-5 h-5" />
+                      اجتزت الاختبار لكن تعذر منح الرتبة تلقائياً — تواصل مع الإدارة في الديسكورد.
+                    </div>
+                  )}
                   <div className="flex flex-wrap justify-center gap-4">
-                    <button
-                      onClick={connectDiscord}
-                      disabled={connecting}
-                      data-testid="exam-discord-connect-btn"
-                      className="inline-flex items-center gap-3 px-7 py-4 rounded-md bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-60 text-white font-bold transition-colors"
-                    >
-                      <SiDiscord size={18} />
-                      {connecting ? "جاري التحويل للديسكورد..." : "تسجيل الدخول عبر الديسكورد"}
-                    </button>
-                    <Link
-                      to="/"
-                      data-testid="exam-home-link"
-                      className="inline-flex items-center px-7 py-4 rounded-md border border-[#D4AF37]/60 text-[#FDE047] hover:bg-[#D4AF37]/10 font-bold transition-colors"
-                    >
+                    <a href={DISCORD_URL} target="_blank" rel="noreferrer" data-testid="exam-open-discord-btn"
+                      className="inline-flex items-center gap-3 px-7 py-4 rounded-md bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold transition-colors">
+                      <SiDiscord size={18} /> افتح الديسكورد
+                    </a>
+                    <Link to="/" data-testid="exam-home-link"
+                      className="inline-flex items-center px-7 py-4 rounded-md border border-[#D4AF37]/60 text-[#FDE047] hover:bg-[#D4AF37]/10 font-bold transition-colors">
                       العودة للرئيسية
                     </Link>
                   </div>

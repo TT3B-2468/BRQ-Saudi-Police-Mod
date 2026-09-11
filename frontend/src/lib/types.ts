@@ -22,7 +22,13 @@ export interface QuizResult {
   score: number;
   total: number;
   passed: boolean;
-  token?: string;
+  role_granted: boolean;
+}
+
+export interface DiscordMember {
+  id: string;
+  username: string;
+  avatar?: string | null;
 }
 
 export interface AdminUser {

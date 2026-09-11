@@ -6,7 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode
 
 from dotenv import load_dotenv
 
@@ -24,6 +24,9 @@ from pymongo import ReturnDocument
 from starlette.middleware.cors import CORSMiddleware
 
 from lib.db import client, db, ensure_indexes
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 JWT_ALGORITHM = "HS256"
 DISCORD_API = "https://discord.com/api/v10"
@@ -129,7 +132,13 @@ class QuizResult(BaseModel):
     score: int
     total: int
     passed: bool
-    token: Optional[str] = None
+    role_granted: bool = False
+
+
+class DiscordMember(BaseModel):
+    id: str
+    username: str
+    avatar: Optional[str] = None
 
 
 async def seed_admin():
@@ -246,20 +255,26 @@ async def quiz_questions():
 
 
 @api_router.post("/quiz/submit", response_model=QuizResult)
-async def quiz_submit(body: QuizSubmit):
+async def quiz_submit(body: QuizSubmit, request: Request):
+    member = get_discord_member(request)
+    if member is None:
+        raise HTTPException(status_code=401, detail="سجّل دخولك عبر الديسكورد أولاً")
     ids = {a.id for a in body.answers}
     if ids != set(QUIZ_BY_ID):
         raise HTTPException(status_code=422, detail="يجب الإجابة على جميع الأسئلة")
     score = sum(1 for a in body.answers if QUIZ_BY_ID[a.id]["options"][QUIZ_BY_ID[a.id]["answer"]] == a.option)
     total = len(QUIZ_QUESTIONS)
     passed = score >= QUIZ_PASS_SCORE
-    token = None
+    role_granted = False
     if passed:
-        token = jwt.encode(
-            {"type": "quiz_pass", "score": score,
-             "exp": datetime.now(timezone.utc) + timedelta(minutes=30)},
-            jwt_secret(), algorithm=JWT_ALGORITHM)
-    return QuizResult(score=score, total=total, passed=passed, token=token)
+        role_granted = await grant_role(member["uid"])
+        await db.discord_grants.insert_one(
+            {"user_id": member["uid"], "username": member["username"], "score": score,
+             "role_granted": role_granted, "granted_at": datetime.now(timezone.utc)})
+    await db.quiz_results.insert_one(
+        {"user_id": member["uid"], "username": member["username"], "score": score, "passed": passed,
+         "created_at": datetime.now(timezone.utc)})
+    return QuizResult(score=score, total=total, passed=passed, role_granted=role_granted)
 
 
 # ---------- Discord OAuth2 + Bot Role Grant ----------
@@ -270,38 +285,58 @@ def discord_configured() -> bool:
         "DISCORD_GUILD_ID", "DISCORD_ROLE_ID", "DISCORD_REDIRECT_URI"))
 
 
-def verify_pass_token(token: str) -> bool:
+DISCORD_COOKIE = "discord_session"
+
+
+def get_discord_member(request: Request) -> Optional[dict]:
+    token = request.cookies.get(DISCORD_COOKIE)
+    if not token:
+        return None
     try:
         payload = jwt.decode(token, jwt_secret(), algorithms=[JWT_ALGORITHM])
-        return payload.get("type") == "quiz_pass"
     except jwt.PyJWTError:
-        return False
+        return None
+    return payload if payload.get("type") == "discord" else None
+
+
+async def grant_role(uid: str) -> bool:
+    bot = {"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"}
+    url = f"{DISCORD_API}/guilds/{os.environ['DISCORD_GUILD_ID']}/members/{uid}/roles/{os.environ['DISCORD_ROLE_ID']}"
+    async with httpx.AsyncClient(timeout=20) as http:
+        res = await http.put(url, headers=bot)
+    if res.status_code not in (200, 204):
+        logger.warning("role grant failed for %s: %s %s", uid, res.status_code, res.text[:200])
+    return res.status_code in (200, 204)
 
 
 @api_router.get("/discord/login")
-async def discord_login(token: str):
-    if not verify_pass_token(token):
-        raise HTTPException(status_code=401, detail="انتهت صلاحية رمز الاجتياز — أعد الاختبار")
+async def discord_login():
     if not discord_configured():
-        raise HTTPException(status_code=503, detail="discord_not_configured")
+        return RedirectResponse("/exam?discord=fail&reason=config")
+    state = jwt.encode({"type": "oauth_state", "exp": datetime.now(timezone.utc) + timedelta(minutes=10)},
+                       jwt_secret(), algorithm=JWT_ALGORITHM)
     params = urlencode({
         "client_id": os.environ["DISCORD_CLIENT_ID"],
         "redirect_uri": os.environ["DISCORD_REDIRECT_URI"],
         "response_type": "code",
         "scope": "identify guilds.join",
-        "state": token,
+        "state": state,
+        "prompt": "none",
     })
-    return {"url": f"https://discord.com/oauth2/authorize?{params}"}
+    return RedirectResponse(f"https://discord.com/oauth2/authorize?{params}")
 
 
 @api_router.get("/discord/callback")
 async def discord_callback(code: str = "", state: str = ""):
     def fail(reason: str) -> RedirectResponse:
-        return RedirectResponse(f"/discord/result?status=fail&reason={reason}")
+        return RedirectResponse(f"/exam?discord=fail&reason={reason}")
 
     if not discord_configured():
         return fail("config")
-    if not state or not verify_pass_token(state):
+    try:
+        if jwt.decode(state, jwt_secret(), algorithms=[JWT_ALGORITHM]).get("type") != "oauth_state":
+            return fail("state")
+    except jwt.PyJWTError:
         return fail("state")
     if not code:
         return fail("denied")
@@ -316,25 +351,38 @@ async def discord_callback(code: str = "", state: str = ""):
         if token_res.status_code != 200:
             return fail("token")
         access = token_res.json().get("access_token", "")
-        user_res = await http.get(f"{DISCORD_API}/users/@me",
-                                  headers={"Authorization": f"Bearer {access}"})
+        user_res = await http.get(f"{DISCORD_API}/users/@me", headers={"Authorization": f"Bearer {access}"})
         if user_res.status_code != 200:
             return fail("user")
         user = user_res.json()
         uid = user["id"]
         username = user.get("global_name") or user.get("username", "")
+        avatar = f"https://cdn.discordapp.com/avatars/{uid}/{user['avatar']}.png?size=64" if user.get("avatar") else None
         bot = {"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"}
-        guild_id = os.environ["DISCORD_GUILD_ID"]
-        await http.put(f"{DISCORD_API}/guilds/{guild_id}/members/{uid}",
+        await http.put(f"{DISCORD_API}/guilds/{os.environ['DISCORD_GUILD_ID']}/members/{uid}",
                        json={"access_token": access}, headers=bot)
-        role_res = await http.put(
-            f"{DISCORD_API}/guilds/{guild_id}/members/{uid}/roles/{os.environ['DISCORD_ROLE_ID']}",
-            headers=bot)
-        if role_res.status_code not in (200, 204):
-            return fail("role")
-    await db.discord_grants.insert_one(
-        {"user_id": uid, "username": username, "granted_at": datetime.now(timezone.utc)})
-    return RedirectResponse(f"/discord/result?status=success&user={quote(username)}")
+    session = jwt.encode(
+        {"type": "discord", "uid": uid, "username": username, "avatar": avatar,
+         "exp": datetime.now(timezone.utc) + timedelta(hours=6)},
+        jwt_secret(), algorithm=JWT_ALGORITHM)
+    resp = RedirectResponse("/exam?discord=ok")
+    resp.set_cookie(key=DISCORD_COOKIE, value=session, httponly=True, secure=True,
+                    samesite="lax", max_age=6 * 3600, path="/")
+    return resp
+
+
+@api_router.get("/discord/me", response_model=DiscordMember)
+async def discord_me(request: Request):
+    member = get_discord_member(request)
+    if member is None:
+        raise HTTPException(status_code=401, detail="غير مسجل")
+    return DiscordMember(id=member["uid"], username=member["username"], avatar=member.get("avatar"))
+
+
+@api_router.post("/discord/logout")
+async def discord_logout(response: Response):
+    response.delete_cookie(DISCORD_COOKIE, path="/")
+    return {"ok": True}
 
 
 app.include_router(api_router)
@@ -347,6 +395,3 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
